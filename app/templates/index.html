@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} - Starter Project{% endblock %}
+
+{% block content %}
+  <section class="intro">
+    <p class="eyebrow">Frontend starter</p>
+    <h1>Fondasi proyek siap dikembangkan</h1>
+    <p>
+      Fitur dipisahkan per router. Tambahkan halaman dan integrasi hanya setelah
+      alur serta API Contract disepakati dengan tim Backend.
+    </p>
+  </section>
+
+  <section aria-labelledby="features-heading">
+    <h2 id="features-heading">Area fitur</h2>
+    <ul class="feature-list">
+      <li>
+        <strong>Auth</strong>
+        <span>Login dan registrasi sesuai keputusan proyek.</span>
+        <a href="/auth/login">Buka starter Auth</a>
+      </li>
+      <li>
+        <strong>Customer</strong>
+        <span>Dashboard, order, dan riwayat Customer.</span>
+        <a href="/customer/">Buka starter Customer</a>
+      </li>
+      <li>
+        <strong>Driver</strong>
+        <span>Dashboard, pengajuan, dan ketersediaan Driver.</span>
+        <a href="/driver/">Buka starter Driver</a>
+      </li>
+      <li>
+        <strong>Chat</strong>
+        <span>Tampilan percakapan sesuai API Contract.</span>
+        <a href="/chat/">Buka starter Chat</a>
+      </li>
+      <li>
+        <strong>Admin</strong>
+        <span>Dashboard dan pengelolaan lokasi.</span>
+        <a href="/admin/">Buka starter Admin</a>
+      </li>
+    </ul>
+  </section>
+{% endblock %}

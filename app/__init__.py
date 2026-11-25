@@ -1,0 +1,1 @@
+"""AnterinDong frontend application package."""
