@@ -1,15 +1,107 @@
 {% extends "base.html" %}
 
-{% block title %}Customer - {{ app_name }}{% endblock %}
+{% block title %}Dashboard Customer - {{ app_name }}{% endblock %}
 
 {% block content %}
-  <section class="intro">
+  {% if is_sample_preview %}
+    <aside class="preview-banner" aria-label="Mode data contoh">
+      <strong>Mode Data Contoh (Preview):</strong>
+      <span>Tampilan ini menggunakan data contoh terpisah, bukan data aplikasi aktual.</span>
+      <a href="/customer/">Kembali ke tampilan normal</a>
+    </aside>
+  {% endif %}
+
+  <section class="intro dashboard-hero">
     <p class="eyebrow">Area fitur: Customer</p>
-    <h1>Dashboard Customer</h1>
+    <h1>
+      {% if customer_name %}
+        Selamat datang, {{ customer_name }}!
+      {% else %}
+        Selamat datang!
+      {% endif %}
+    </h1>
     <p>
-      Kembangkan tampilan dashboard, form Antar-Jemput dan Jasa Titip, detail
-      order, serta riwayat di area Customer. Pastikan field form mengikuti API
-      Contract yang disepakati.
+      Pilih layanan yang Anda butuhkan atau pantau ringkasan pesanan Anda dari
+      halaman utama Customer.
     </p>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="driver-aktif-heading">
+    <div class="card stat-card">
+      <div>
+        <h2 id="driver-aktif-heading">Driver Aktif</h2>
+        <p class="card-subtitle">Informasi ketersediaan Driver di area operasional UGM.</p>
+      </div>
+      <div class="stat-content">
+        {% if active_drivers_count is not none %}
+          <p class="stat-value">{{ active_drivers_count }}</p>
+          <p class="stat-label">Driver berstatus aktif</p>
+        {% else %}
+          <p class="empty-state">Data Driver aktif belum tersedia</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="layanan-heading">
+    <h2 id="layanan-heading">Pilihan Layanan Utama</h2>
+    <div class="card-grid">
+      {% for service in services %}
+        <article class="card service-card">
+          <h3>{{ service.name }}</h3>
+          <p>{{ service.description }}</p>
+          <div class="card-actions">
+            {% if service.url %}
+              <a class="btn btn-primary" href="{{ service.url }}">Pilih {{ service.name }}</a>
+            {% else %}
+              <button type="button" class="btn btn-disabled" disabled aria-disabled="true">
+                Segera tersedia
+              </button>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="ringkasan-pesanan-heading">
+    <div class="section-header">
+      <h2 id="ringkasan-pesanan-heading">Ringkasan Pesanan</h2>
+      <div class="section-action">
+        <span class="action-label">Riwayat Pesanan:</span>
+        {% if history_url %}
+          <a class="btn btn-secondary" href="{{ history_url }}">Lihat Riwayat Pesanan</a>
+        {% else %}
+          <button type="button" class="btn btn-disabled" disabled aria-disabled="true">
+            Segera tersedia
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      {% if orders %}
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Jenis Layanan</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+                <tr>
+                  <td>{{ order.service_type }}</td>
+                  <td><span class="status-badge">{{ order.status }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="empty-state">Belum ada pesanan</p>
+      {% endif %}
+    </div>
   </section>
 {% endblock %}
