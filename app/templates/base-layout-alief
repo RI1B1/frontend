@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AnterinDong — UGM{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="navbar">
+        <div class="container nav-wrapper">
+            <a href="/" class="brand">AnterinDong</a>
+            
+            <nav class="nav-menu">
+                {% if user and user.is_authenticated %}
+                    
+                    {% if user.role == 'CUSTOMER' %}
+                        <a href="/customer/dashboard">Dashboard</a>
+                        <a href="/customer/orders/antar-jemput">Antar-Jemput</a>
+                        <a href="/customer/orders/jasa-titip">Jasa Titip</a>
+                        <a href="/customer/history">Riwayat</a>
+                        <a href="/driver/apply">Jadi Driver</a>
+
+                    {% elif user.role == 'DRIVER' %}
+                        <a href="/driver/dashboard">Dashboard Driver</a>
+                        <a href="/driver/history">Riwayat Order</a>
+                        <a href="/customer/dashboard">Mode Customer</a>
+
+                    {% elif user.role == 'ADMIN' %}
+                        <a href="/admin/dashboard">Dashboard Admin</a>
+                        <a href="/admin/drivers">Pengajuan Driver</a>
+                        <a href="/admin/locations">Kelola Lokasi</a>
+                        <a href="/admin/orders">Semua Pesanan</a>
+                    {% endif %}
+
+                    <div class="nav-user">
+                        <span>{{ user.name or user.email }} ({{ user.role }})</span>
+                        <form action="/auth/logout" method="POST" style="display:inline;">
+                            <button type="submit" class="btn-logout">Logout</button>
+                        </form>
+                    </div>
+
+                {% else %}
+                    <a href="/auth/login">Login</a>
+                    <a href="/auth/register">Daftar</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        {% if error_message %}
+            <div class="alert alert-error" role="alert">
+                {{ error_message }}
+            </div>
+        {% endif %}
+
+        {% if success_message %}
+            <div class="alert alert-success" role="status">
+                {{ success_message }}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 AnterinDong — Layanan Mobilitas & Jasa Titip Civitas UGM</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
