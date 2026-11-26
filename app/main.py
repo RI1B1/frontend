@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.router import router
+from app.routes import router
 from app.templating import templates
 
 APP_DIR = Path(__file__).resolve().parent
@@ -26,3 +26,7 @@ async def home(request: Request):
         name="index.html",
         context={"app_name": settings.app_name},
     )
+
+
+
+

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Jadi Driver | AnterinDong{% endblock %}
+
+{% block content %}
+{% set label = {"PENDING": "Menunggu persetujuan", "APPROVED": "Disetujui", "REJECTED": "Ditolak"} %}
+<section class="auth-card">
+  <h1>Jadi Driver</h1>
+
+  {% if application %}
+    <p>Status pengajuanmu: <strong>{{ label[application.status] }}</strong></p>
+
+    <dl>
+      <dt>Jenis kendaraan</dt>
+      <dd>{{ application.vehicle_type }}</dd>
+      <dt>Deskripsi kendaraan</dt>
+      <dd>{{ application.vehicle_description or "-" }}</dd>
+    </dl>
+
+    {% if application.status == "PENDING" %}
+      <p class="muted">Admin sedang memeriksa pengajuanmu. Cek lagi nanti.</p>
+    {% elif application.status == "APPROVED" %}
+      <p class="muted">Pengajuanmu disetujui. Keluar lalu masuk lagi supaya akunmu berubah menjadi Driver.</p>
+    {% endif %}
+  {% endif %}
+
+  {% if not application or application.status == "REJECTED" %}
+    {% if application %}
+      <p class="muted">Pengajuan sebelumnya ditolak. Kamu bisa mengajukan lagi.</p>
+    {% else %}
+      <p class="muted">Isi data kendaraanmu. Admin akan memeriksa pengajuanmu.</p>
+    {% endif %}
+
+    {% if error %}
+      <div class="alert alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/driver-application" class="form">
+      <div class="field">
+        <label for="vehicle_type">Jenis kendaraan</label>
+        <select id="vehicle_type" name="vehicle_type" required>
+          <option value="MOTOR">Motor</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="vehicle_description">Deskripsi kendaraan (boleh dikosongkan)</label>
+        <textarea id="vehicle_description" name="vehicle_description" rows="3"
+                  placeholder="Contoh: Motor pribadi">{{ vehicle_description or '' }}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kirim pengajuan</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
