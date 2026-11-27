@@ -47,6 +47,74 @@ class ApplicationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(".feature-list", response.text)
 
+    async def test_driver_dashboard_renders_empty_open_orders_state(self):
+        configured_settings = Settings(
+            _env_file=None,
+            backend_api_base_url="https://backend.example.test",
+        )
+
+        def mock_api_client(_settings):
+            def handler(request):
+                if request.url.path == "/api/v1/driver/availability":
+                    return httpx.Response(200, json={"availability": "ACTIVE"})
+                if request.url.path == "/api/v1/orders/available":
+                    return httpx.Response(200, json={"orders": []})
+                return httpx.Response(404, json={"detail": "Tidak ditemukan"})
+
+            return httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+                base_url="https://backend.example.test",
+            )
+
+        with (
+            patch("app.router.driver.get_settings", return_value=configured_settings),
+            patch("app.router.driver.create_api_client", side_effect=mock_api_client),
+        ):
+            response = await self.client.get(
+                "/driver/dashboard",
+                cookies={"access_token": "test-token"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Belum ada pesanan tersedia", response.text)
+        self.assertIn("ACTIVE", response.text)
+
+    async def test_driver_accept_order_uses_contract_endpoint(self):
+        configured_settings = Settings(
+            _env_file=None,
+            backend_api_base_url="https://backend.example.test",
+        )
+
+        def mock_api_client(_settings):
+            def handler(request):
+                self.assertEqual(request.url.path, "/api/v1/orders/101/accept")
+                self.assertEqual(
+                    request.headers["authorization"],
+                    "Bearer test-token",
+                )
+                return httpx.Response(
+                    200,
+                    json={"message": "Order berhasil diterima", "order": {"id": 101, "status": "ACCEPTED"}},
+                )
+
+            return httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+                base_url="https://backend.example.test",
+            )
+
+        with (
+            patch("app.router.driver.get_settings", return_value=configured_settings),
+            patch("app.router.driver.create_api_client", side_effect=mock_api_client),
+        ):
+            response = await self.client.post(
+                "/driver/orders/101/accept",
+                cookies={"access_token": "test-token"},
+                follow_redirects=False,
+            )
+
+        self.assertEqual(response.status_code, 303)
+        self.assertIn("success=Order+berhasil+diterima", response.headers["location"])
+
     def test_api_client_requires_a_configured_backend_url(self):
         settings_without_api = Settings(
             _env_file=None,

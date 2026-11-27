@@ -3,12 +3,112 @@
 {% block title %}Driver - {{ app_name }}{% endblock %}
 
 {% block content %}
-  <section class="intro">
-    <p class="eyebrow">Area fitur: Driver</p>
-    <h1>Dashboard Driver</h1>
-    <p>
-      Kembangkan dashboard, status ketersediaan, dan ringkasan order Driver di
-      area ini. Pengajuan Driver dibuat setelah alur dan kontraknya dikonfirmasi.
-    </p>
+  <section class="driver-dashboard">
+    <div class="intro">
+      <p class="eyebrow">Area fitur: Driver</p>
+      <h1>Dashboard Driver</h1>
+    </div>
+
+    <section class="availability-card" aria-labelledby="availability-heading">
+      <div>
+        <p class="section-label">Status ketersediaan</p>
+        <h2 id="availability-heading">
+          {% if availability == "ACTIVE" %}
+            <span class="status-badge status-active">ACTIVE</span>
+          {% elif availability == "INACTIVE" %}
+            <span class="status-badge status-inactive">INACTIVE</span>
+          {% else %}
+            <span class="status-badge">Belum diketahui</span>
+          {% endif %}
+        </h2>
+      </div>
+
+      {% if availability %}
+        <div class="availability-actions">
+          <form action="/driver/availability" method="post">
+            <input type="hidden" name="availability" value="ACTIVE">
+            <button type="submit" class="btn btn-success" {% if availability == "ACTIVE" %}disabled{% endif %}>
+              ACTIVE
+            </button>
+          </form>
+          <form action="/driver/availability" method="post">
+            <input type="hidden" name="availability" value="INACTIVE">
+            <button type="submit" class="btn btn-secondary" {% if availability == "INACTIVE" %}disabled{% endif %}>
+              INACTIVE
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="available-orders" aria-labelledby="available-orders-heading">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Pesanan tersedia</p>
+          <h2 id="available-orders-heading">Pesanan OPEN</h2>
+        </div>
+      </div>
+
+      {% if availability != "ACTIVE" %}
+        <div class="empty-state">
+          <p>
+            {% if availability == "INACTIVE" %}
+              Aktifkan status ACTIVE untuk melihat pesanan OPEN.
+            {% else %}
+              Status ketersediaan harus ACTIVE agar pesanan dapat ditampilkan.
+            {% endif %}
+          </p>
+        </div>
+      {% elif orders %}
+        <div class="order-grid">
+          {% for order in orders %}
+            <article class="order-card">
+              <div class="order-card-header">
+                <span class="order-id">Pesanan #{{ order.id }}</span>
+                <span class="status-badge status-open">{{ order.status or "OPEN" }}</span>
+              </div>
+
+              <dl class="order-summary">
+                <div>
+                  <dt>Layanan</dt>
+                  <dd>{{ order.service_type or "-" }}</dd>
+                </div>
+                <div>
+                  <dt>Lokasi awal</dt>
+                  <dd>ID {{ order.pickup_location_id or "-" }}</dd>
+                </div>
+                <div>
+                  <dt>Tujuan</dt>
+                  <dd>ID {{ order.destination_location_id or "-" }}</dd>
+                </div>
+                <div>
+                  <dt>Perkiraan biaya</dt>
+                  <dd>
+                    {% if order.expected_cost is not none %}
+                      Rp{{ "{:,}".format(order.expected_cost).replace(",", ".") }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </dd>
+                </div>
+              </dl>
+
+              <p class="order-description">
+                {{ order.description or "Tidak ada detail tambahan." }}
+              </p>
+
+              <form action="/driver/orders/{{ order.id }}/accept" method="post">
+                <button type="submit" class="btn btn-primary">Terima Pesanan</button>
+              </form>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h3>Belum ada pesanan tersedia</h3>
+          <p>Pesanan OPEN yang baru dibuat akan muncul di sini.</p>
+        </div>
+      {% endif %}
+    </section>
   </section>
 {% endblock %}
