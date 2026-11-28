@@ -10,6 +10,7 @@ from app.services.api_client import (
     api_get_application,
     api_login,
     api_me,
+    api_register, 
 )
 
 router = APIRouter()
@@ -20,9 +21,14 @@ templates = Jinja2Templates(
 EMAIL_DOMAIN = "@mail.ugm.ac.id"
 COOKIE_NAME = "access_token"
 
-# Halaman utama tiap role. TANYAKAN URL sebenarnya ke Raifan (Customer),
-# Tegar Danu (Driver), dan Wulan (Admin), lalu sesuaikan di sini.
+# Halaman utama tiap role. Sesuaikan dengan URL dashboard dari Raifan, Tegar Danu, Wulan.
 ROLE_HOME = {"CUSTOMER": "/customer", "DRIVER": "/driver", "ADMIN": "/admin"}
+
+
+def alamat(request: Request, nama_route: str) -> str:
+    """Alamat halaman berdasarkan NAMA fungsi route-nya.
+    Aman walau router didaftarkan dengan prefix (misal /auth) di main.py."""
+    return str(request.app.url_path_for(nama_route))
 
 
 # ---------- Fungsi bantu (boleh dipakai teman lewat import) ----------
@@ -42,13 +48,13 @@ def get_user(request: Request):
     return data.get("user", data)
 
 
-def cek_akses(request: Request, role: str):
-    """Penjaga halaman. Hasilnya (user, None) kalau boleh masuk,
-    atau (user, response) kalau harus dialihkan / ditolak."""
+def cek_akses(request: Request, role):
+    """role boleh satu role ("CUSTOMER") atau beberapa (("CUSTOMER", "DRIVER"))."""
+    boleh = (role,) if isinstance(role, str) else tuple(role)
     user = get_user(request)
     if user is None:
-        return None, RedirectResponse("/login", status_code=303)
-    if user["role"] != role:
+        return None, RedirectResponse(alamat(request, "login_page"), status_code=303)
+    if user["role"] not in boleh:
         return user, templates.TemplateResponse(
             request, "auth/akses_ditolak.html", {"user": user}, status_code=403
         )
@@ -74,16 +80,20 @@ def get_application(request: Request):
 def home(request: Request):
     user = get_user(request)
     if user:
-        return RedirectResponse(ROLE_HOME.get(user["role"], "/login"), status_code=303)
-    return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(
+            ROLE_HOME.get(user["role"], alamat(request, "login_page")), status_code=303
+        )
+    return RedirectResponse(alamat(request, "login_page"), status_code=303)
 
 
 # ---------- Login dan logout ----------
 
 @router.get("/login", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse(request, "auth/login.html", {})
-
+def login_page(request: Request, registered: str = ""):
+    context = {}
+    if registered == "1":
+        context["success"] = "Akun berhasil dibuat. Silakan masuk."
+    return templates.TemplateResponse(request, "auth/login.html", context)
 
 @router.post("/login", response_class=HTMLResponse)
 def login_submit(request: Request, email: str = Form(...), password: str = Form(...)):
@@ -105,7 +115,8 @@ def login_submit(request: Request, email: str = Form(...), password: str = Form(
 
     if resp.status_code == 200:
         data = resp.json()
-        r = RedirectResponse(ROLE_HOME.get(data["user"]["role"], "/login"), status_code=303)
+        tujuan = ROLE_HOME.get(data["user"]["role"], alamat(request, "login_page"))
+        r = RedirectResponse(tujuan, status_code=303)
         r.set_cookie(
             COOKIE_NAME,
             data["access_token"],
@@ -121,25 +132,65 @@ def login_submit(request: Request, email: str = Form(...), password: str = Form(
 
 
 @router.post("/logout")
-def logout():
-    r = RedirectResponse("/login", status_code=303)
+def logout(request: Request):
+    r = RedirectResponse(alamat(request, "login_page"), status_code=303)
     r.delete_cookie(COOKIE_NAME)
     return r
 
+@router.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse(request, "auth/register.html", {})
 
-# ---------- Pengajuan Driver (milik Customer) ----------
-# Alamatnya sengaja /driver-application supaya tidak bentrok dengan folder URL
-# /customer milik Raifan. Minta Raifan menaruh tombol "Jadi Driver" ke alamat ini.
+
+@router.post("/register", response_class=HTMLResponse)
+def register_submit(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+):
+    name = name.strip()
+    email = email.strip().lower()
+
+    def tampil_error(pesan: str, kode: int):
+        return templates.TemplateResponse(
+            request,
+            "auth/register.html",
+            {"error": pesan, "name": name, "email": email},
+            status_code=kode,
+        )
+
+    if not name:
+        return tampil_error("Nama wajib diisi.", 400)
+    if not email.endswith(EMAIL_DOMAIN):
+        return tampil_error(f"Email harus berakhiran {EMAIL_DOMAIN}", 400)
+
+    try:
+        resp = api_register(name, email, password)
+    except httpx.RequestError:
+        return tampil_error("Server belum bisa dihubungi. Coba lagi sebentar lagi.", 503)
+
+    if resp.status_code == 201:
+        alamat_login = str(request.app.url_path_for("login_page"))
+        return RedirectResponse(alamat_login + "?registered=1", status_code=303)
+    if resp.status_code == 409:
+        return tampil_error("Email ini sudah terdaftar. Silakan masuk.", 409)
+    return tampil_error("Data belum valid. Periksa nama, email, dan password.", 400)
+# ---------- Pengajuan Driver ----------
 
 @router.get("/driver-application", response_class=HTMLResponse)
 def driver_application_page(request: Request):
-    user, tolak = cek_akses(request, "CUSTOMER")
+    user, tolak = cek_akses(request, ("CUSTOMER", "DRIVER"))
     if tolak:
         return tolak
     return templates.TemplateResponse(
         request,
         "auth/driver_application.html",
-        {"user": user, "application": get_application(request)},
+        {
+            "user": user,
+            "application": get_application(request),
+            "driver_home": ROLE_HOME["DRIVER"],
+        },
     )
 
 
@@ -162,6 +213,7 @@ def driver_application_submit(
                 "application": get_application(request),
                 "error": pesan,
                 "vehicle_description": vehicle_description,
+                "driver_home": ROLE_HOME["DRIVER"],
             },
             status_code=kode,
         )
@@ -174,9 +226,9 @@ def driver_application_submit(
         return tampil_error("Server belum bisa dihubungi. Coba lagi sebentar lagi.", 503)
 
     if resp.status_code == 201:
-        return RedirectResponse("/driver-application", status_code=303)
+        return RedirectResponse(alamat(request, "driver_application_page"), status_code=303)
     if resp.status_code == 401:
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse(alamat(request, "login_page"), status_code=303)
     if resp.status_code == 409:
         return tampil_error("Kamu sudah punya pengajuan yang masih aktif.", 409)
     if resp.status_code == 403:

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar | AnterinDong{% endblock %}
+
+{# ==========================================================
+   HALAMAN REGISTER
+   Data dari Python : error (teks), name dan email (isi ulang)
+   Dikirim ke API   : POST /api/v1/auth/register  {name, email, password}
+   Tidak ada kolom role: Backend yang menetapkan role CUSTOMER
+   ========================================================== #}
+
+{% block content %}
+<div class="auth-wrap">
+  <section class="auth-panel">
+    <header class="auth-head">
+      <div class="auth-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </div>
+      <h1 class="auth-title">Buat akun AnterinDong</h1>
+      <p class="auth-sub">Daftar dengan email UGM untuk mulai memesan.</p>
+    </header>
+
+    {% if error %}
+      <div class="auth-alert auth-alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ request.app.url_path_for('register_submit') }}" class="auth-form">
+      <div class="auth-field">
+        <label class="auth-label" for="name">Nama</label>
+        <input class="auth-input" type="text" id="name" name="name"
+               value="{{ name or '' }}" autocomplete="name" required>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email UGM</label>
+        <input class="auth-input" type="email" id="email" name="email"
+               placeholder="nama@mail.ugm.ac.id" value="{{ email or '' }}"
+               autocomplete="email" required>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label" for="password">Password</label>
+        <input class="auth-input" type="password" id="password" name="password"
+               autocomplete="new-password" required>
+        {# Aturan password dari Backend belum ada. Kalau sudah, tulis di sini: #}
+        <p class="auth-hint">Gunakan password yang sulit ditebak.</p>
+      </div>
+
+      <button type="submit" class="auth-btn auth-btn-primary">Daftar</button>
+    </form>
+
+    <p class="auth-foot">
+      Sudah punya akun?
+      <a href="{{ request.app.url_path_for('login_page') }}">Masuk</a>
+    </p>
+  </section>
+</div>
+{% endblock %}

@@ -2,8 +2,28 @@
 
 {% block title %}Akses ditolak | AnterinDong{% endblock %}
 
+{# ==========================================================
+   HALAMAN AKSES DITOLAK (HTTP 403)
+   Data dari Python : user (name, role) bila sudah login
+   Tidak memanggil API
+   ========================================================== #}
+
 {% block content %}
-  <h1>Akses ditolak</h1>
-  <p>Kamu tidak punya izin untuk membuka halaman ini.</p>
-  <p><a href="/">Kembali ke halaman utama</a></p>
+<div class="auth-wrap">
+  <section class="auth-panel">
+    <header class="auth-head">
+      <div class="auth-icon auth-icon-danger">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h1 class="auth-title">Akses ditolak</h1>
+      <p class="auth-sub">Kamu tidak punya izin untuk membuka halaman ini.</p>
+    </header>
+
+    {% if user %}
+      <p class="auth-note">Kamu masuk sebagai <strong>{{ user.name }}</strong> ({{ user.role }}).</p>
+    {% endif %}
+
+    <a href="/" class="auth-btn auth-btn-primary">Kembali ke halaman utama</a>
+  </section>
+</div>
 {% endblock %}

@@ -2,55 +2,100 @@
 
 {% block title %}Jadi Driver | AnterinDong{% endblock %}
 
+{# ==========================================================
+   HALAMAN PENGAJUAN DRIVER + STATUS PENGAJUAN
+   Data dari Python :
+     user         -> name, role (CUSTOMER / DRIVER)
+     application  -> GET /api/v1/driver/application
+                     {status, vehicle_type, vehicle_description}
+                     None kalau belum pernah mengajukan (API 404)
+     error        -> teks error dari Backend (409, 403, 422, 503)
+     driver_home  -> alamat dashboard Driver
+   Dikirim ke API   : POST /api/v1/driver/applications
+                      {vehicle_type, vehicle_description}
+   ========================================================== #}
+
 {% block content %}
 {% set label = {"PENDING": "Menunggu persetujuan", "APPROVED": "Disetujui", "REJECTED": "Ditolak"} %}
-<section class="auth-card">
-  <h1>Jadi Driver</h1>
+<div class="auth-wrap">
+  <section class="auth-panel auth-panel-wide">
+    <header class="auth-head">
+      <div class="auth-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <h1 class="auth-title">Jadi Driver</h1>
+      <p class="auth-sub">Ajukan dirimu untuk menerima order antar-jemput dan jasa titip.</p>
+    </header>
 
-  {% if application %}
-    <p>Status pengajuanmu: <strong>{{ label[application.status] }}</strong></p>
-
-    <dl>
-      <dt>Jenis kendaraan</dt>
-      <dd>{{ application.vehicle_type }}</dd>
-      <dt>Deskripsi kendaraan</dt>
-      <dd>{{ application.vehicle_description or "-" }}</dd>
-    </dl>
-
-    {% if application.status == "PENDING" %}
-      <p class="muted">Admin sedang memeriksa pengajuanmu. Cek lagi nanti.</p>
-    {% elif application.status == "APPROVED" %}
-      <p class="muted">Pengajuanmu disetujui. Keluar lalu masuk lagi supaya akunmu berubah menjadi Driver.</p>
-    {% endif %}
-  {% endif %}
-
-  {% if not application or application.status == "REJECTED" %}
+    {# ---------- STATUS PENGAJUAN ---------- #}
     {% if application %}
-      <p class="muted">Pengajuan sebelumnya ditolak. Kamu bisa mengajukan lagi.</p>
-    {% else %}
-      <p class="muted">Isi data kendaraanmu. Admin akan memeriksa pengajuanmu.</p>
-    {% endif %}
-
-    {% if error %}
-      <div class="alert alert-error" role="alert">{{ error }}</div>
-    {% endif %}
-
-    <form method="post" action="/driver-application" class="form">
-      <div class="field">
-        <label for="vehicle_type">Jenis kendaraan</label>
-        <select id="vehicle_type" name="vehicle_type" required>
-          <option value="MOTOR">Motor</option>
-        </select>
+      {% set s = application.status %}
+      <div class="auth-status">
+        <span class="auth-status-label">Status pengajuan</span>
+        <span class="auth-badge auth-badge-{{ s|lower }}">{{ label[s] }}</span>
       </div>
 
-      <div class="field">
-        <label for="vehicle_description">Deskripsi kendaraan (boleh dikosongkan)</label>
-        <textarea id="vehicle_description" name="vehicle_description" rows="3"
-                  placeholder="Contoh: Motor pribadi">{{ vehicle_description or '' }}</textarea>
-      </div>
+      <ol class="auth-steps" aria-label="Progres pengajuan">
+        <li class="auth-step is-done"><span class="auth-step-dot">1</span>Diajukan</li>
+        <li class="auth-step {{ 'is-active' if s == 'PENDING' else 'is-done' }}"><span class="auth-step-dot">2</span>Diperiksa Admin</li>
+        <li class="auth-step {{ 'is-approved' if s == 'APPROVED' else ('is-rejected' if s == 'REJECTED' else '') }}"><span class="auth-step-dot">3</span>{% if s == 'APPROVED' %}Disetujui{% elif s == 'REJECTED' %}Ditolak{% else %}Keputusan{% endif %}</li>
+      </ol>
 
-      <button type="submit" class="btn btn-primary">Kirim pengajuan</button>
-    </form>
-  {% endif %}
-</section>
+      <dl class="auth-detail">
+        <div>
+          <dt>Jenis kendaraan</dt>
+          <dd>{{ application.vehicle_type }}</dd>
+        </div>
+        <div>
+          <dt>Deskripsi kendaraan</dt>
+          <dd>{{ application.vehicle_description or "-" }}</dd>
+        </div>
+      </dl>
+
+      {% if s == "PENDING" %}
+        <div class="auth-alert auth-alert-info">Admin sedang memeriksa pengajuanmu. Muat ulang halaman ini nanti untuk melihat hasilnya.</div>
+      {% elif s == "APPROVED" %}
+        {% if user.role == "DRIVER" %}
+          <div class="auth-alert auth-alert-ok">Pengajuanmu disetujui dan kamu sudah menjadi Driver.</div>
+          <a href="{{ driver_home }}" class="auth-btn auth-btn-primary">Buka dashboard Driver</a>
+        {% else %}
+          <div class="auth-alert auth-alert-ok">Pengajuanmu disetujui. Kalau menu Driver belum muncul, keluar lalu masuk lagi.</div>
+        {% endif %}
+      {% endif %}
+    {% elif user.role == "DRIVER" %}
+      <div class="auth-alert auth-alert-ok">Akunmu sudah berperan sebagai Driver.</div>
+      <a href="{{ driver_home }}" class="auth-btn auth-btn-primary">Buka dashboard Driver</a>
+    {% endif %}
+
+    {# ---------- FORM PENGAJUAN ---------- #}
+    {% if user.role == "CUSTOMER" and (not application or application.status == "REJECTED") %}
+      {% if application %}
+        <div class="auth-alert auth-alert-error">Pengajuan sebelumnya ditolak. Kamu bisa mengajukan lagi.</div>
+      {% endif %}
+
+      {% if error %}
+        <div class="auth-alert auth-alert-error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="{{ request.app.url_path_for('driver_application_submit') }}" class="auth-form">
+        <div class="auth-field">
+          <label class="auth-label" for="vehicle_type">Jenis kendaraan</label>
+          <select class="auth-input" id="vehicle_type" name="vehicle_type" required>
+            <option value="MOTOR">Motor</option>
+            {# TAMBAH pilihan lain sesuai nilai dari Backend, contoh:
+               <option value="NILAI_DARI_BACKEND">Teks yang tampil</option> #}
+          </select>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="vehicle_description">Deskripsi kendaraan <span class="auth-optional">(boleh dikosongkan)</span></label>
+          <textarea class="auth-input" id="vehicle_description" name="vehicle_description" rows="3"
+                    placeholder="Contoh: Motor pribadi">{{ vehicle_description or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="auth-btn auth-btn-primary">Kirim pengajuan</button>
+      </form>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

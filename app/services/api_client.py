@@ -25,6 +25,13 @@ def api_me(token: str):
     """GET /api/v1/auth/me"""
     return httpx.get(f"{BACKEND_URL}/auth/me", headers=_headers(token), timeout=10)
 
+def api_register(name: str, email: str, password: str):
+    """Kirim data pendaftaran ke Backend."""
+    return httpx.post(
+        f"{BACKEND_URL}/auth/register",
+        json={"name": name, "email": email, "password": password},
+        timeout=10,
+    )
 
 # === Pengajuan Driver ===
 

@@ -1,108 +1,53 @@
-```html
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | AnterinDong</title>
+{% extends "base.html" %}
 
-    <link rel="stylesheet" href="{{ url_for('static', path='css/login.css') }}">
-</head>
+{% block title %}Masuk | AnterinDong{% endblock %}
 
-<body>
+{# ==========================================================
+   HALAMAN LOGIN
+   Data dari Python : error (teks), success (teks), email (isi ulang)
+   Dikirim ke API   : POST /api/v1/auth/login  {email, password}
+   Nama input email dan password JANGAN diubah (dibaca auth.py)
+   ========================================================== #}
 
-    <main class="login-container">
+{% block content %}
+<div class="auth-wrap">
+  <section class="auth-panel">
+    <header class="auth-head">
+      <div class="auth-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h1 class="auth-title">Masuk ke AnterinDong</h1>
+      <p class="auth-sub">Gunakan email UGM kamu (@mail.ugm.ac.id).</p>
+    </header>
 
-        <section class="login-card">
+    {% if error %}
+      <div class="auth-alert auth-alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+      <div class="auth-alert auth-alert-ok" role="status">{{ success }}</div>
+    {% endif %}
 
-            <div class="brand">
-                <div class="brand-icon">A</div>
-                <h2>Anterin<span>Dong.</span></h2>
-            </div>
+    <form method="post" action="{{ request.app.url_path_for('login_submit') }}" class="auth-form">
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email UGM</label>
+        <input class="auth-input" type="email" id="email" name="email"
+               placeholder="nama@mail.ugm.ac.id" value="{{ email or '' }}"
+               autocomplete="email" required>
+      </div>
 
-            <div class="welcome">
-                <p class="eyebrow">UGM MOBILITY PLATFORM</p>
-                <h1>Selamat Datang!</h1>
-                <p>Masuk untuk mulai menggunakan layanan AnterinDong.</p>
-            </div>
+      <div class="auth-field">
+        <label class="auth-label" for="password">Password</label>
+        <input class="auth-input" type="password" id="password" name="password"
+               autocomplete="current-password" required>
+      </div>
 
-            <form action="/login" method="POST">
+      <button type="submit" class="auth-btn auth-btn-primary">Masuk</button>
+    </form>
 
-                <div class="form-group">
-                    <label for="email">Email UGM</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="nama@mail.ugm.ac.id"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-
-                    <div class="password-wrapper">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Masukkan password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            id="togglePassword"
-                            class="toggle-password"
-                        >
-                            Lihat
-                        </button>
-                    </div>
-                </div>
-
-                <div class="error-message" id="errorMessage">
-                    <!-- Pesan error dari backend ditampilkan di sini -->
-                </div>
-
-                <button type="submit" class="login-button">
-                    Masuk Sekarang
-                </button>
-
-            </form>
-
-            <div class="register">
-                Belum punya akun?
-                <a href="/register">Daftar sekarang</a>
-            </div>
-
-            <div class="footer">
-                AnterinDong © 2026
-                <br>
-                Made for UGM Community
-            </div>
-
-        </section>
-
-    </main>
-
-    <script>
-        const passwordInput = document.getElementById("password");
-        const togglePassword = document.getElementById("togglePassword");
-
-        togglePassword.addEventListener("click", function () {
-
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                togglePassword.textContent = "Sembunyikan";
-            } else {
-                passwordInput.type = "password";
-                togglePassword.textContent = "Lihat";
-            }
-
-        });
-    </script>
-
-</body>
-</html>
-```
+    <p class="auth-foot">
+      Belum punya akun?
+      <a href="{{ request.app.url_path_for('register_page') }}">Daftar</a>
+    </p>
+  </section>
+</div>
+{% endblock %}

@@ -74,3 +74,192 @@ h1 {
   color: #4b5a50;
   line-height: 1.5;
 }
+
+
+
+/* =====================================================================
+   HALAMAN AUTH: login, register, pengajuan Driver, akses ditolak
+   Milik Arfa. Semua class berawalan "auth-" supaya tidak bentrok.
+   Untuk menyamakan dengan dashboard, ubah warna di blok --a-* saja.
+   ===================================================================== */
+.auth-wrap {
+  --a-card: #ffffff;
+  --a-ink: #14213d;
+  --a-muted: #5b6b82;
+  --a-line: #d8e0ea;
+  --a-soft: #f4f7fb;
+  --a-primary: #1b4d8f;
+  --a-primary-dark: #143a6c;
+  --a-accent: #f2a900;
+  --a-danger: #b42318;
+  --a-danger-bg: #fdecea;
+  --a-ok: #1d6b3a;
+  --a-ok-bg: #e7f6ec;
+  --a-warn: #8a5a00;
+  --a-warn-bg: #fff3d6;
+  --a-info-bg: #eaf1fb;
+
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+  color: var(--a-ink);
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px;
+  background: var(--a-card);
+  border: 1px solid var(--a-line);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(20, 33, 61, 0.08);
+}
+.auth-panel-wide { max-width: 560px; }
+
+/* ----- Kepala kartu ----- */
+.auth-head { text-align: center; margin-bottom: 24px; }
+.auth-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--a-soft);
+  color: var(--a-primary);
+  border-bottom: 3px solid var(--a-accent);
+}
+.auth-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.auth-icon-danger { color: var(--a-danger); background: var(--a-danger-bg); border-bottom-color: var(--a-danger); }
+.auth-title { margin: 0 0 4px; font-size: 1.5rem; line-height: 1.25; }
+.auth-sub { margin: 0; color: var(--a-muted); font-size: 0.95rem; }
+
+/* ----- Form ----- */
+.auth-form { margin-top: 20px; }
+.auth-field { margin-bottom: 16px; }
+.auth-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem; }
+.auth-optional { font-weight: 400; color: var(--a-muted); }
+.auth-input {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--a-ink);
+  background: #fff;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+}
+.auth-input:focus {
+  outline: 3px solid rgba(27, 77, 143, 0.25);
+  border-color: var(--a-primary);
+}
+textarea.auth-input { resize: vertical; }
+.auth-hint { margin: 6px 0 0; font-size: 0.85rem; color: var(--a-muted); }
+
+/* ----- Tombol ----- */
+.auth-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.auth-btn-primary { background: var(--a-primary); color: #fff; }
+.auth-btn-primary:hover { background: var(--a-primary-dark); }
+
+/* ----- Pesan ----- */
+.auth-alert { margin: 16px 0; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+.auth-alert-error { background: var(--a-danger-bg); color: var(--a-danger); }
+.auth-alert-ok { background: var(--a-ok-bg); color: var(--a-ok); }
+.auth-alert-info { background: var(--a-info-bg); color: var(--a-primary-dark); }
+.auth-note { margin: 0 0 16px; text-align: center; color: var(--a-muted); }
+
+/* ----- Kaki kartu ----- */
+.auth-foot { margin: 20px 0 0; text-align: center; color: var(--a-muted); font-size: 0.95rem; }
+.auth-foot a { color: var(--a-primary); font-weight: 600; }
+
+/* ----- Status pengajuan Driver ----- */
+.auth-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--a-soft);
+  border-radius: 10px;
+}
+.auth-status-label { font-weight: 600; }
+.auth-badge { padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.auth-badge-pending { background: var(--a-warn-bg); color: var(--a-warn); }
+.auth-badge-approved { background: var(--a-ok-bg); color: var(--a-ok); }
+.auth-badge-rejected { background: var(--a-danger-bg); color: var(--a-danger); }
+
+/* ----- Langkah progres ----- */
+.auth-steps { display: flex; margin: 24px 0; padding: 0; list-style: none; }
+.auth-step { position: relative; flex: 1; text-align: center; font-size: 0.85rem; color: var(--a-muted); }
+.auth-step::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--a-line);
+}
+.auth-step:first-child::before { display: none; }
+.auth-step-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 6px;
+  border-radius: 50%;
+  background: var(--a-card);
+  border: 2px solid var(--a-line);
+  font-weight: 600;
+}
+.auth-step.is-done::before,
+.auth-step.is-active::before,
+.auth-step.is-approved::before,
+.auth-step.is-rejected::before { background: var(--a-primary); }
+.auth-step.is-done .auth-step-dot { background: var(--a-primary); border-color: var(--a-primary); color: #fff; }
+.auth-step.is-active { color: var(--a-ink); font-weight: 600; }
+.auth-step.is-active .auth-step-dot { border-color: var(--a-primary); color: var(--a-primary); }
+.auth-step.is-approved { color: var(--a-ok); font-weight: 600; }
+.auth-step.is-approved .auth-step-dot { background: var(--a-ok); border-color: var(--a-ok); color: #fff; }
+.auth-step.is-rejected { color: var(--a-danger); font-weight: 600; }
+.auth-step.is-rejected .auth-step-dot { background: var(--a-danger); border-color: var(--a-danger); color: #fff; }
+
+/* ----- Rincian data ----- */
+.auth-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.auth-detail div { padding: 12px 14px; border: 1px solid var(--a-line); border-radius: 10px; }
+.auth-detail dt { font-size: 0.8rem; color: var(--a-muted); }
+.auth-detail dd { margin: 2px 0 0; font-weight: 600; word-break: break-word; }
+
+/* ----- HP ----- */
+@media (max-width: 480px) {
+  .auth-wrap { padding: 8px 0; }
+  .auth-panel { padding: 24px 18px; border-radius: 12px; }
+  .auth-detail { grid-template-columns: 1fr; }
+}
