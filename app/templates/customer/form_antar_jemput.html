@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Form Antar-Jemput - {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+  <p class="eyebrow">Area fitur: Customer</p>
+  <h1>Form Antar-Jemput</h1>
+  <p>Pilih lokasi jemput, lokasi tujuan, jumlah penumpang, serta catatan atau perkiraan biaya jika diperlukan.</p>
+</section>
+
+{% if error_message %}
+<div role="alert" style="padding: 0.9rem 1.1rem; margin-bottom: 1.25rem; border: 1px solid #c94a4a; border-radius: 0.5rem; background: #fff5f5; color: #8f2424;">
+  {{ error_message }}
+</div>
+{% endif %}
+
+<form method="post" action="/customer/antar-jemput" id="antarJemputForm" style="background: #fff; border: 1px solid #dce5de; border-radius: 0.5rem; padding: 1.5rem; display: grid; gap: 1rem;">
+  <div style="display: grid; gap: 0.4rem;">
+    <label for="pickup_location_id" style="font-weight: 700;">Lokasi Jemput *</label>
+    <select id="pickup_location_id" name="pickup_location_id" required style="padding: 0.65rem 0.75rem; border: 1px solid #dce5de; border-radius: 0.4rem; background: #fff; color: #17211b;">
+      <option value="">-- Pilih lokasi jemput --</option>
+      {% for loc in locations %}
+        <option value="{{ loc.id }}" {% if form_data and form_data.pickup_location_id == (loc.id|string) %}selected{% endif %}>
+          {{ loc.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div style="display: grid; gap: 0.4rem;">
+    <label for="dropoff_location_id" style="font-weight: 700;">Lokasi Tujuan *</label>
+    <select id="dropoff_location_id" name="dropoff_location_id" required style="padding: 0.65rem 0.75rem; border: 1px solid #dce5de; border-radius: 0.4rem; background: #fff; color: #17211b;">
+      <option value="">-- Pilih lokasi tujuan --</option>
+      {% for loc in locations %}
+        <option value="{{ loc.id }}" {% if form_data and form_data.dropoff_location_id == (loc.id|string) %}selected{% endif %}>
+          {{ loc.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div style="display: grid; gap: 0.4rem;">
+    <label for="passenger_count" style="font-weight: 700;">Jumlah Penumpang *</label>
+    <input
+      type="number"
+      id="passenger_count"
+      name="passenger_count"
+      min="1"
+      step="1"
+      value="{{ form_data.passenger_count if form_data and form_data.passenger_count else 1 }}"
+      required
+      style="padding: 0.65rem 0.75rem; border: 1px solid #dce5de; border-radius: 0.4rem; background: #fff; color: #17211b;"
+    />
+  </div>
+
+  <div style="display: grid; gap: 0.4rem;">
+    <label for="estimated_fare" style="font-weight: 700;">Perkiraan Biaya (Opsional)</label>
+    <input
+      type="number"
+      id="estimated_fare"
+      name="estimated_fare"
+      min="0"
+      step="100"
+      placeholder="Contoh: 15000"
+      value="{{ form_data.estimated_fare if form_data and form_data.estimated_fare is not none else '' }}"
+      style="padding: 0.65rem 0.75rem; border: 1px solid #dce5de; border-radius: 0.4rem; background: #fff; color: #17211b;"
+    />
+  </div>
+
+  <div style="display: grid; gap: 0.4rem;">
+    <label for="notes" style="font-weight: 700;">Catatan (Opsional)</label>
+    <textarea
+      id="notes"
+      name="notes"
+      rows="3"
+      placeholder="Contoh: Tunggu di depan lobby utama"
+      style="padding: 0.65rem 0.75rem; border: 1px solid #dce5de; border-radius: 0.4rem; background: #fff; color: #17211b; font-family: inherit;"
+    >{{ form_data.notes if form_data and form_data.notes else '' }}</textarea>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.25rem;">
+    <button
+      type="submit"
+      style="padding: 0.7rem 1.35rem; border: none; border-radius: 0.4rem; background: #176f40; color: #fff; font-weight: 700; cursor: pointer;"
+    >
+      Kirim Pesanan
+    </button>
+    <a href="/customer" style="color: #4b5a50; text-decoration: none;">Kembali ke Dashboard</a>
+  </div>
+</form>
+
+<script>
+  document.getElementById("antarJemputForm").addEventListener("submit", function (event) {
+    const pickup = document.getElementById("pickup_location_id").value;
+    const dropoff = document.getElementById("dropoff_location_id").value;
+    const fareInput = document.getElementById("estimated_fare").value;
+
+    if (!pickup || !dropoff) {
+      event.preventDefault();
+      alert("Lokasi jemput dan lokasi tujuan wajib dipilih.");
+      return;
+    }
+
+    if (pickup === dropoff) {
+      event.preventDefault();
+      alert("Lokasi jemput dan lokasi tujuan tidak boleh sama.");
+      return;
+    }
+
+    if (fareInput !== "" && Number(fareInput) < 0) {
+      event.preventDefault();
+      alert("Perkiraan biaya tidak boleh negatif.");
+    }
+  });
+</script>
+{% endblock %}
