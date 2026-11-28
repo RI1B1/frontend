@@ -27,7 +27,7 @@ class ApplicationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_each_feature_has_a_rendered_starter_page(self):
         feature_pages = (
-            ("/auth/login", "Area fitur: Auth"),
+            ("/auth/login", "Selamat Datang!"),
             ("/customer/", "Area fitur: Customer"),
             ("/driver/", "Area fitur: Driver"),
             ("/chat/", "Area fitur: Chat"),
